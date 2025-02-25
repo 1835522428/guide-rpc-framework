@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 基于Netty的发送RPC请求实现类
  * initialize and close Bootstrap object
  *
  * @author shuang.kou

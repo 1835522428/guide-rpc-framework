@@ -4,6 +4,7 @@ import github.javaguide.extension.SPI;
 import github.javaguide.remoting.dto.RpcRequest;
 
 /**
+ * 用来发送一个RPC的Http请求的接口，有两种实现：Socket和Netty
  * send RpcRequest。
  *
  * @author shuang.kou

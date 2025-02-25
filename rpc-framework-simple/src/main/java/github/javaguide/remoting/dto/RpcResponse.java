@@ -11,6 +11,7 @@ import lombok.ToString;
 import java.io.Serializable;
 
 /**
+ * RPC请求的HTTP返回结果
  * @author shuang.kou
  * @createTime 2020年05月12日 16:15:00
  */

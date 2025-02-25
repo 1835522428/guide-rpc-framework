@@ -33,10 +33,10 @@ public final class CuratorUtils {
     private static final int BASE_SLEEP_TIME = 1000;
     private static final int MAX_RETRIES = 3;
     public static final String ZK_REGISTER_ROOT_PATH = "/my-rpc";   // 注册中心节点，所有数据放在这个节点下："create /path data"、"get /path"、"set /path data"
-    private static final Map<String, List<String>> SERVICE_ADDRESS_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, List<String>> SERVICE_ADDRESS_MAP = new ConcurrentHashMap<>(); // 缓存，第一次调用ZooKeeper查到某个服务的所有提供方之后就保存到这个Map中，后续直接从Map中拿，但是拿到了之后依然要根据负载均衡算法选一个
     private static final Set<String> REGISTERED_PATH_SET = ConcurrentHashMap.newKeySet();   // 存储所有的ZooKeeper注册节点，用ZooKeeper客户端直接去检测也行：zkClient.checkExists().forPath(path)
     private static CuratorFramework zkClient;   // CuratorFramework是Apache Curator库的核心组件，用于简化与Zookeeper的交互
-    private static final String DEFAULT_ZOOKEEPER_ADDRESS = "127.0.0.1:2181";
+    private static final String DEFAULT_ZOOKEEPER_ADDRESS = "127.0.0.1:2181";   // 默认ZooKeeper地址
 
     private CuratorUtils() {
     }
@@ -65,21 +65,40 @@ public final class CuratorUtils {
     }
 
     /**
+     * 在ZooKeeper中，获取一个节点的全部子节点，这个方法是用来找某个服务的全部提供者IP
+     * 因为在存储所有服务提供方时，是通过节点存储的，就像一个树状结构：
+     *      /my-rpc/github.javaguide.HelloServicetest2version/127.0.0.1:9999
+     *      /my-rpc/github.javaguide.HelloServicetest2version/127.0.0.1:10000
+     * 所以如果想要找到 github.javaguide.HelloServicetest2version 这个服务的所有提供方，就要找到
+     * /my-rpc/github.javaguide.HelloServicetest2version 的所有子节点，返回的List里面就是一堆的URL
+     * <p>
+     * 参数：
+     *      zkClient：一个ZooKeeper连接
+     *      rpcServiceName = interface name + version + group，例如：github.javaguide.HelloServicetest2version
+     * <p>
      * Gets the children under a node
      *
      * @param rpcServiceName rpc service name eg:github.javaguide.HelloServicetest2version1
      * @return All child nodes under the specified node
      */
     public static List<String> getChildrenNodes(CuratorFramework zkClient, String rpcServiceName) {
+        /*
+            这个SERVICE_ADDRESS_MAP是一个本地缓存，如果第一次调用ZooKeeper查到了这个服务的所有提供方IP
+            那么就保存到缓存中，后续直接从缓存中拿结果
+         */
         if (SERVICE_ADDRESS_MAP.containsKey(rpcServiceName)) {
             return SERVICE_ADDRESS_MAP.get(rpcServiceName);
         }
+
+        /*
+            如果缓存中没有，去ZooKeeper中查，就要构造一个“父路径”：/my-rpc/方法标识
+         */
         List<String> result = null;
         String servicePath = ZK_REGISTER_ROOT_PATH + "/" + rpcServiceName;
         try {
             result = zkClient.getChildren().forPath(servicePath);
-            SERVICE_ADDRESS_MAP.put(rpcServiceName, result);
-            registerWatcher(rpcServiceName, zkClient);
+            SERVICE_ADDRESS_MAP.put(rpcServiceName, result);    // 放入缓存中，方便下次查询
+            registerWatcher(rpcServiceName, zkClient);  // 注册一个监视器，监听信息变更，防止一直使用缓存数据，如果有服务方信息变更，要及时更新缓存
         } catch (Exception e) {
             log.error("get children nodes for path [{}] fail", servicePath);
         }
@@ -87,6 +106,7 @@ public final class CuratorUtils {
     }
 
     /**
+     * 挨个清除ZooKeeper中的注册节点
      * Empty the registry of data
      */
     public static void clearRegistry(CuratorFramework zkClient, InetSocketAddress inetSocketAddress) {
@@ -139,19 +159,24 @@ public final class CuratorUtils {
     }
 
     /**
+     * 注册一个ZooKeeper的监听器，监听某个服务的子节点是否会发生变更，变更时也就意味着服务提供方IP变了，要及时更新缓存SERVICE_ADDRESS_MAP
      * Registers to listen for changes to the specified node
      *
      * @param rpcServiceName rpc service name eg:github.javaguide.HelloServicetest2version
      */
     private static void registerWatcher(String rpcServiceName, CuratorFramework zkClient) throws Exception {
+        // 监听 /my-rpc/github.javaguide.HelloServicetest2version 这个节点的子节点变更
         String servicePath = ZK_REGISTER_ROOT_PATH + "/" + rpcServiceName;
         PathChildrenCache pathChildrenCache = new PathChildrenCache(zkClient, servicePath, true);
+
         PathChildrenCacheListener pathChildrenCacheListener = (curatorFramework, pathChildrenCacheEvent) -> {
+            // 监听到子节点变更之后，更新缓存 SERVICE_ADDRESS_MAP
             List<String> serviceAddresses = curatorFramework.getChildren().forPath(servicePath);
             SERVICE_ADDRESS_MAP.put(rpcServiceName, serviceAddresses);
         };
+
         pathChildrenCache.getListenable().addListener(pathChildrenCacheListener);
-        pathChildrenCache.start();
+        pathChildrenCache.start();  // 开启监听线程
     }
 
 }

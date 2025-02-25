@@ -31,6 +31,11 @@ public class RpcRequest implements Serializable {
     private String version;
     private String group;
 
+    /**
+     * 返回值示例：github.javaguide.HelloServicetest2version
+     *
+     * @return
+     */
     public String getRpcServiceName() {
         return this.getInterfaceName() + this.getGroup() + this.getVersion();
     }
