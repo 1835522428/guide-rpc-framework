@@ -6,6 +6,7 @@ import github.javaguide.serviceimpl.HelloServiceImpl2;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
+ * RpcScan注解用于扫描服务端提供的服务，注册到配置中心
  * Server: Automatic registration service via @RpcService annotation
  *
  * @author shuang.kou

@@ -10,6 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 用于扫描路径下的所有rpc实现方法
  * scan custom annotations
  *
  * @author shuang.kou

@@ -4,6 +4,7 @@ import github.javaguide.annotation.RpcReference;
 import org.springframework.stereotype.Component;
 
 /**
+ * 提供给外部调用的接口
  * @author smile2coder
  */
 @Component
