@@ -5,6 +5,7 @@ import github.javaguide.extension.SPI;
 import java.net.InetSocketAddress;
 
 /**
+ * 向ZooKeeper注册服务
  * service registration
  *
  * @author shuang.kou

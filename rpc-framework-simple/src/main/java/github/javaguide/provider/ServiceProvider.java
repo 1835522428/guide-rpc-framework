@@ -3,6 +3,7 @@ package github.javaguide.provider;
 import github.javaguide.config.RpcServiceConfig;
 
 /**
+ * 一个Service的提供者需要调用的所有函数
  * store and provide service object.
  *
  * @author shuang.kou
