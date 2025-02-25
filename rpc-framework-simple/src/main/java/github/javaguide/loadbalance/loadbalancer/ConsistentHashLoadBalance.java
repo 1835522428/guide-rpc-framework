@@ -26,7 +26,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
     @Override
     protected String doSelect(List<String> serviceAddresses, RpcRequest rpcRequest) {
-        // 将请求方IP映射为哈希值
+        // 所有的服务器列表映射为一个哈希值
         int identityHashCode = System.identityHashCode(serviceAddresses);
         // build rpc service name by rpcRequest，这个 rpcServiceName 由 服务接口名+集群+版本号 组成，这就是一个服务提供方的唯一标识了
         String rpcServiceName = rpcRequest.getRpcServiceName();
