@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * 一个RPC服务所有的参数，包括：服务版本号，服务所在的服务器IP，提供的服务内容（一个接口类或者接口名？）
  * @author shuang.kou
  * @createTime 2020年07月21日 20:23:00
  **/

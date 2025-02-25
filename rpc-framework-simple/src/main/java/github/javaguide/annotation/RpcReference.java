@@ -9,6 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * RpcReference注解用于自动装配RPC实现类，是RPC框架下的@Autowired替代方案
  * RPC reference annotation, autowire the service implementation class
  *
  * @author smile2coder

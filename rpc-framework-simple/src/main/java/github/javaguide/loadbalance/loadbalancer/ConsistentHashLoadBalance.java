@@ -14,6 +14,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 一致性哈希负载均衡，即来自同一个IP的请求总会被转发到同一台服务器
  * refer to dubbo consistent hash load balance: https://github.com/apache/dubbo/blob/2d9583adf26a2d8bd6fb646243a9fe80a77e65d5/dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/loadbalance/ConsistentHashLoadBalance.java
  *
  * @author RicardoZ
@@ -25,9 +26,11 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
     @Override
     protected String doSelect(List<String> serviceAddresses, RpcRequest rpcRequest) {
+        // 将请求方IP映射为哈希值
         int identityHashCode = System.identityHashCode(serviceAddresses);
-        // build rpc service name by rpcRequest
+        // build rpc service name by rpcRequest，这个 rpcServiceName 由 服务接口名+集群+版本号 组成，这就是一个服务提供方的唯一标识了
         String rpcServiceName = rpcRequest.getRpcServiceName();
+        // 根据唯一标识获取目标服务器
         ConsistentHashSelector selector = selectors.get(rpcServiceName);
         // check for updates
         if (selector == null || selector.identityHashCode != identityHashCode) {
