@@ -61,7 +61,7 @@ public class ZkServiceProviderImpl implements ServiceProvider {
     }
 
     /**
-     * Provider端从Map中直接获取自己注册的服务
+     * Provider端从Map中直接获取自己注册的服务，拿到的应该是一个Method
      * @param rpcServiceName rpc service name
      * @return
      */

@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 
 /**
+ * 这个类是一个BeanPostProcessor，在实例化和属性赋值之后，由SpringIOC容器自动执行
+ * 执行的内容即扫描@RpcService注解，将所有标记了该注解的类都注册到RPC注册中心
+ * 每个Bean在实例化之后都会接收所有的BeanPostProcessor检查，所以都回来检查一遍有没有@RpcService注解
  * call this method before creating the bean to see if the class is annotated
  *
  * @author shuang.kou
@@ -39,6 +42,7 @@ public class SpringBeanPostProcessor implements BeanPostProcessor {
     @SneakyThrows
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        // 如果有@RpcService注解，这个bean就是类名（beanId），具体的version和group在注解的属性里面
         if (bean.getClass().isAnnotationPresent(RpcService.class)) {
             log.info("[{}] is annotated with  [{}]", bean.getClass().getName(), RpcService.class.getCanonicalName());
             // get RpcService annotation
@@ -48,6 +52,7 @@ public class SpringBeanPostProcessor implements BeanPostProcessor {
                     .group(rpcService.group())
                     .version(rpcService.version())
                     .service(bean).build();
+            // 发布提供的服务，将服务放入自己的Map注册表中，同时注册到ZooKeeper，供服务端调用
             serviceProvider.publishService(rpcServiceConfig);
         }
         return bean;

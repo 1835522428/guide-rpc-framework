@@ -18,13 +18,17 @@ import java.lang.reflect.Method;
  */
 @Slf4j
 public class RpcRequestHandler {
+
+    // 服务提供者
     private final ServiceProvider serviceProvider;
 
     public RpcRequestHandler() {
+        // 用工厂模式生成服务提供者
         serviceProvider = SingletonFactory.getInstance(ZkServiceProviderImpl.class);
     }
 
     /**
+     * Provider直接从自己的Map中把对应的服务拿出来，拿到的应该是一个Method
      * Processing rpcRequest: call the corresponding method, and then return the method
      */
     public Object handle(RpcRequest rpcRequest) {
@@ -33,6 +37,7 @@ public class RpcRequestHandler {
     }
 
     /**
+     * RpcRequest中包含了需要调用的方法名、方法参数等信息，通过反射调用
      * get method execution results
      *
      * @param rpcRequest client request

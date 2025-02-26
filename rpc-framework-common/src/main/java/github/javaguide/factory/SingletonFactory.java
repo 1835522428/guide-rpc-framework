@@ -22,6 +22,7 @@ public final class SingletonFactory {
             throw new IllegalArgumentException();
         }
         String key = c.toString();
+        // 单例模式，双重检验锁
         if (OBJECT_MAP.containsKey(key)) {
             return c.cast(OBJECT_MAP.get(key));
         } else {
